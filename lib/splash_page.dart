@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:imc_dio/helps/app_image.dart';
-import 'package:imc_dio/pages/historico/historico_imc.dart';
+import 'package:imc_dio/pages/historico/historico_imc_page.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -18,7 +18,7 @@ class _SplashPageState extends State<SplashPage> {
     Timer(const Duration(seconds: 4), () {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (_) => const HistoricoImc(),
+          builder: (_) => const HistoricoImcPage(),
         ),
       );
     });

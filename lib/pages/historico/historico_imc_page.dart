@@ -1,26 +1,61 @@
 import 'package:flutter/material.dart';
 import 'package:imc_dio/helps/app_image.dart';
+import 'package:imc_dio/model/historico.dart';
+import 'package:imc_dio/repository/imc_repository.dart';
 import 'package:intl/intl.dart';
 import 'dart:math' as math;
 
+import '../../model/imc.dart';
 import 'componets/meus_registros_tile.dart';
 
-class HistoricoImc extends StatefulWidget {
-  const HistoricoImc({super.key});
+class HistoricoImcPage extends StatefulWidget {
+  const HistoricoImcPage({super.key});
 
   @override
-  State<HistoricoImc> createState() => _HistoricoImcState();
+  State<HistoricoImcPage> createState() => _HistoricoImcPageState();
 }
 
-class _HistoricoImcState extends State<HistoricoImc> {
+class _HistoricoImcPageState extends State<HistoricoImcPage> {
   final alturaEC = TextEditingController();
   final pesoEC = TextEditingController();
+  ImcRepository gravar = ImcRepository();
+  List historico = [];
+
+  Future<void> pegarHistorico() async {
+    historico = await gravar.meuHistoricoRegistros();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    pegarHistorico();
+  }
 
   @override
   void dispose() {
     super.dispose();
     alturaEC.dispose();
     pesoEC.dispose();
+  }
+
+  void calcularIMC(double altura, double peso) {
+    //! calculando o imc
+    double imcCalculado = Imc.calulcarIMC(altura, peso);
+    //! data do registro (evoluir para um registro diario)
+    String data = DateFormat('dd-MM-yyyy').format(DateTime.now()).toString();
+    Map descricaoDoImc = Imc.classicacao(imcCalculado);
+    //! historido do imc do dia atual
+    Historico imcDeHoje = Historico(
+      imcCalculado,
+      altura,
+      peso,
+      data,
+      descricaoDoImc['descricao'],
+      descricaoDoImc['cor'],
+    );
+
+    //* gravar no banco (repository simulando)
+    gravar.registarImc(imcDeHoje);
   }
 
   @override
@@ -42,58 +77,19 @@ class _HistoricoImcState extends State<HistoricoImc> {
 
               //? Lista dos registro de imc realizados
               Expanded(
-                child: ListView(
-                  children: [
-                    //  DateFormat('dd-MM-yyyy').format(DateTime.now()) .toString(),
-                    //  String imc, Color cor, String data, String altura, String pes
-                    MeusRegistrosTile(
-                      imc: 17,
-                      cor: Colors.blue.shade400,
-                      data: DateFormat('dd-MM-yyyy')
-                          .format(DateTime.now())
-                          .toString(),
-                      altura: 1.89,
-                      peso: 85.3,
-                    ),
-                    MeusRegistrosTile(
-                      imc: 20,
-                      cor: Colors.green.shade400,
-                      data: DateFormat('dd-MM-yyyy')
-                          .format(DateTime.now())
-                          .toString(),
-                      altura: 1.89,
-                      peso: 85.3,
-                    ),
-                    MeusRegistrosTile(
-                      imc: 24.2,
-                      cor: Colors.amber.shade400,
-                      data: DateFormat('dd-MM-yyyy')
-                          .format(DateTime.now())
-                          .toString(),
-                      altura: 1.89,
-                      peso: 85.3,
-                    ),
-                    MeusRegistrosTile(
-                      imc: 28,
-                      cor: Colors.red.shade300,
-                      data: DateFormat('dd-MM-yyyy')
-                          .format(DateTime.now())
-                          .toString(),
-                      altura: 1.89,
-                      peso: 85.3,
-                    ),
-                    MeusRegistrosTile(
-                      imc: 31,
-                      cor: Colors.red,
-                      data: DateFormat('dd-MM-yyyy')
-                          .format(DateTime.now())
-                          .toString(),
-                      altura: 1.89,
-                      peso: 85.3,
-                    ),
-                  ],
-                ),
-              ),
+                  child: ListView.builder(
+                itemCount: historico.length,
+                itemBuilder: (context, index) {
+                  Historico dia = historico[index];
+                  return MeusRegistrosTile(
+                    imc: double.parse(Imc.precisaoDecimal(dia.imc)),
+                    cor: dia.cor,
+                    data: dia.date,
+                    altura: dia.altura,
+                    peso: dia.peso,
+                  );
+                },
+              )),
             ],
           ),
         ),
@@ -151,10 +147,12 @@ class _HistoricoImcState extends State<HistoricoImc> {
                     ),
                     TextButton.icon(
                       onPressed: () {
-                        debugPrint(
-                            "Alruta: ${alturaEC.text}  Peso: ${pesoEC.text}");
                         if (pesoEC.text.isNotEmpty &&
                             alturaEC.text.isNotEmpty) {
+                          calcularIMC(
+                            double.parse(alturaEC.text.replaceAll(',', '.')),
+                            double.parse(pesoEC.text.replaceAll(',', '.')),
+                          );
                           Navigator.of(context).pop();
                         }
                       },
@@ -165,10 +163,7 @@ class _HistoricoImcState extends State<HistoricoImc> {
                 );
               });
         },
-        child: Container(
-          color: Colors.red,
-          child: Image.asset(AppImage.balanca),
-        ),
+        child: Image.asset(AppImage.balanca),
       ),
     );
   }
