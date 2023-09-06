@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-abstract class Imc {
+abstract class ImcModel {
   static calulcarIMC(double altura, double peso) {
 // IMC = Peso ÷ (Altura × Altura)
 // Exemplo de como calcular o IMC:
@@ -20,7 +20,7 @@ abstract class Imc {
       classificacao['descricao'] = 'Abaixo do peso';
       classificacao['cor'] = Colors.blue.shade400;
     } else if (imc < 24.9) {
-      classificacao['descricao'] = "Peso Ideal (continue com a boa saúde!)";
+      classificacao['descricao'] = "Peso Ideal!";
       classificacao['cor'] = Colors.green.shade400;
     } else if (imc < 29.9) {
       classificacao['descricao'] = "Levemente acima do peso";

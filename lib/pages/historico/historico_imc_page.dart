@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:imc_dio/helps/app_image.dart';
-import 'package:imc_dio/model/historico.dart';
+import 'package:imc_dio/model/historico_model.dart';
 import 'package:imc_dio/repository/imc_repository.dart';
 import 'package:intl/intl.dart';
 import 'dart:math' as math;
 
-import '../../model/imc.dart';
+import '../../model/imc_model.dart';
 import 'componets/meus_registros_tile.dart';
 
 class HistoricoImcPage extends StatefulWidget {
@@ -22,7 +22,8 @@ class _HistoricoImcPageState extends State<HistoricoImcPage> {
   List historico = [];
 
   Future<void> pegarHistorico() async {
-    historico = await gravar.meuHistoricoRegistros();
+    historico = await gravar.obterDados();
+    setState(() {});
   }
 
   @override
@@ -40,22 +41,24 @@ class _HistoricoImcPageState extends State<HistoricoImcPage> {
 
   void calcularIMC(double altura, double peso) {
     //! calculando o imc
-    double imcCalculado = Imc.calulcarIMC(altura, peso);
+    double imcCalculado = ImcModel.calulcarIMC(altura, peso);
     //! data do registro (evoluir para um registro diario)
     String data = DateFormat('dd-MM-yyyy').format(DateTime.now()).toString();
-    Map descricaoDoImc = Imc.classicacao(imcCalculado);
     //! historido do imc do dia atual
-    Historico imcDeHoje = Historico(
-      imcCalculado,
+    HistoricoModel imcDeHoje = HistoricoModel(
+      0,
       altura,
       peso,
       data,
-      descricaoDoImc['descricao'],
-      descricaoDoImc['cor'],
+      imcCalculado,
     );
 
     //* gravar no banco (repository simulando)
-    gravar.registarImc(imcDeHoje);
+
+    gravar.salvar(imcDeHoje);
+    setState(() {
+      pegarHistorico();
+    });
   }
 
   @override
@@ -80,13 +83,15 @@ class _HistoricoImcPageState extends State<HistoricoImcPage> {
                   child: ListView.builder(
                 itemCount: historico.length,
                 itemBuilder: (context, index) {
-                  Historico dia = historico[index];
+                  HistoricoModel dia = historico[index];
+                  Map classificado = ImcModel.classicacao(dia.imc);
                   return MeusRegistrosTile(
-                    imc: double.parse(Imc.precisaoDecimal(dia.imc)),
-                    cor: dia.cor,
-                    data: dia.date,
                     altura: dia.altura,
                     peso: dia.peso,
+                    data: dia.data,
+                    imc: double.parse(ImcModel.precisaoDecimal(dia.imc)),
+                    descricao: classificado['descricao'],
+                    cor: classificado['cor'],
                   );
                 },
               )),

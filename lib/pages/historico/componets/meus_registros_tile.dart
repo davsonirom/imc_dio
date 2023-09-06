@@ -2,19 +2,22 @@
 import 'package:flutter/material.dart';
 
 class MeusRegistrosTile extends StatelessWidget {
-  const MeusRegistrosTile({
-    Key? key,
-    required this.imc,
-    required this.cor,
-    required this.data,
-    required this.altura,
-    required this.peso,
-  }) : super(key: key);
-  final double imc;
-  final Color cor;
-  final String data;
   final double altura;
   final double peso;
+  final String data;
+  final double imc;
+  final String descricao;
+  final Color cor;
+
+  const MeusRegistrosTile({
+    Key? key,
+    required this.altura,
+    required this.peso,
+    required this.data,
+    required this.imc,
+    required this.descricao,
+    required this.cor,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +28,13 @@ class MeusRegistrosTile extends StatelessWidget {
         backgroundColor: cor,
         child: Text("$imc"),
       ),
-      title: Text(data),
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(data),
+          Text(descricao),
+        ],
+      ),
       subtitle: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
